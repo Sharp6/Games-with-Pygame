@@ -3,13 +3,14 @@ import pygame.locals as GAME_GLOBALS
 import pygame.event as GAME_EVENTS
 import pygame.time as GAME_TIME
 import ships
+import gpioInput
 
-windowWidth = 1024
-windowHeight = 614
+windowWidth = 800
+windowHeight = 480
 
 pygame.init()
 pygame.font.init()
-surface = pygame.display.set_mode((windowWidth, windowHeight))
+surface = pygame.display.set_mode((windowWidth, windowHeight), pygame.FULLSCREEN)
 
 pygame.display.set_caption('Alien\'s Are Gonna Kill Me!')
 textFont = pygame.font.SysFont("monospace", 50)
@@ -23,6 +24,12 @@ gameOver = False
 mousePosition = (0,0)
 mouseStates = None
 mouseDown = False
+
+#Gpio variables
+myGpio = gpioInput.GpioInput(windowWidth)
+gpioPosition = 0
+gpioButtonState = None
+gpioButtonDown = False
 
 #Image Variables
 startScreen = pygame.image.load("assets/start_screen.png")
@@ -41,6 +48,13 @@ pygame.mixer.init()
 def updateGame():
 
   global mouseDown, gameOver
+  global gpioButtonDown
+
+  if gpioButtonState and gpioButtonDown is False:
+    ship.fire()
+    gpioButtonDown = True
+  elif not(gpioButtonState) and gpioButtonDown is True:
+    gpioButtonDown = False
 
   if mouseStates[0] is 1 and mouseDown is False:
     ship.fire()
@@ -48,7 +62,8 @@ def updateGame():
   elif mouseStates[0] is 0 and mouseDown is True:
     mouseDown = False
 
-  ship.setPosition(mousePosition)
+  #ship.setPosition(mousePosition)
+  ship.setPosition(pot_position)
 
   enemiesToRemove = []
 
@@ -93,6 +108,8 @@ while True:
   timeTick = GAME_TIME.get_ticks()
   mousePosition = pygame.mouse.get_pos()
   mouseStates = pygame.mouse.get_pressed()
+  pot_position = myGpio.getPotPosition()
+  gpioButtonState = myGpio.readButton()
 
   if gameStarted is True and gameOver is False:
 
@@ -104,7 +121,7 @@ while True:
 
     if mouseStates[0] is 1:
 
-      if mousePosition[0] > 445 and mousePosition[0] < 580 and mousePosition[1] > 450 and mousePosition[1] < 510:
+      if mousePosition[0] > 350 and mousePosition[0] < 450 and mousePosition[1] > 350 and mousePosition[1] < 400:
 
         gameStarted = True
 
